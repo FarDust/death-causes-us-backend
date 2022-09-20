@@ -10,11 +10,11 @@ export class SupabaseGenericRepository<T extends Partial<E>, E> extends IGeneric
 
   private readonly logger = new Logger(SupabaseGenericRepository.name);
 
-  private _repository: SupabaseQueryBuilder<IndexableById<T>>;
+  private _repository: () => SupabaseQueryBuilder<IndexableById<T>>;
   private _model: ClassConstructor<T>;
   private _entity: ClassConstructor<E>;
 
-  constructor(model: ClassConstructor<T>, entity: ClassConstructor<E>, repository: SupabaseQueryBuilder<IndexableById<T>>) {
+  constructor(model: ClassConstructor<T>, entity: ClassConstructor<E>, repository: () => SupabaseQueryBuilder<IndexableById<T>>) {
     super();
     this._model = model;
     this._entity = entity;
@@ -30,16 +30,17 @@ export class SupabaseGenericRepository<T extends Partial<E>, E> extends IGeneric
     let result: PostgrestResponse<IndexableById<T>>;
     this.logger.log(`Getting all ${this._entity.name} from ${this._model.name}`);
     if (item && filter) {
-      result = await this._repository.select('*').eq(filter as any, item[filter] as any)
+      this.logger.log(`Filtering ${this._entity.name} by ${String(filter)} = ${String(item[filter])}`);
+      result = await this._repository().select('*').eq(filter as any, item[filter] as any)
     } else {
-      result = await this._repository.select('*')
+      result = await this._repository().select('*')
     }
     this.logger.log(`Got ${result.data.length} ${this._entity.name} from ${this._model.name}`);
     return result.data.map(x => this._mapToEntity(x));
   }
 
   async get(id: string): Promise<E> {
-    return this._mapToEntity(await this._repository.select('*').eq('id', id as any).then(x => x.data[0]));
+    return this._mapToEntity(await this._repository().select('*').eq('id', id as any).then(x => x.data[0]));
   }
 
 

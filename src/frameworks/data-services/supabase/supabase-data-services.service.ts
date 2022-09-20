@@ -20,12 +20,12 @@ export class SupabaseDataService
     this.deathCauses = new SupabaseGenericRepository<DeathCause, DeathCauseEntity>(
       DeathCause,
       DeathCauseEntity,
-      this._supabase.from(supabaseConfig.tables.deathCauses),
+      () => this._supabase.from(supabaseConfig.tables.deathCauses),
     );
     this.diseases = new SupabaseGenericRepository<Disease, DiseaseEntity>(
       Disease,
       DiseaseEntity,
-      this._supabase.from(supabaseConfig.tables.diseases),
+      () => this._supabase.from(supabaseConfig.tables.diseases),
     );
   }
 }
